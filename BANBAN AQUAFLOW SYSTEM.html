@@ -3,27 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banban AquaFlow</title>
+<title>Banban AquaFlow (CSS/HTML only)</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --sky: #b8dff0;
-    --sky-dark: #8ec8e8;
-    --sky-mid: #a0d4ec;
     --blue-btn: #2196f3;
-    --blue-btn-hover: #1976d2;
     --green-btn: #4caf50;
     --amber-btn: #c68a00;
     --orange-btn: #f57c00;
     --teal-btn: #00acc1;
-    --card-bg: rgba(255,255,255,0.55);
     --card-border: rgba(255,255,255,0.8);
     --text-dark: #1a3a4a;
     --text-mid: #2d6a8a;
-    --text-light: #5a8fa8;
     --input-bg: rgba(255,255,255,0.7);
-    --input-border: rgba(100,160,200,0.5);
+    --input-border: rgba(16, 145, 231, 0.692);
     --pending-bg: #f4a261;
     --active-bg: #126bf1;
     --fixed-bg: #4caf50;
@@ -40,7 +35,6 @@
     overflow-x: hidden;
   }
 
-  /* Wave background */
   .app-shell {
     width: 100%;
     min-height: 100vh;
@@ -60,6 +54,12 @@
     z-index: 0;
   }
 
+  /* ── NAVIGATION ENGINE (radio-hack, no JS) ──
+     Each hidden radio represents "which screen is showing".
+     Labels styled as buttons/links check a radio to switch screens.
+     This is the only way to get page-level navigation in pure CSS. */
+  input.nav-radio { display: none; }
+
   .screen {
     display: none;
     width: 100%;
@@ -71,14 +71,16 @@
     flex-direction: column;
     align-items: center;
   }
-  .screen.active {
+
+  #nav-role:checked ~ #screen-role,
+  #nav-resident-login:checked ~ #screen-resident-login,
+  #nav-resident:checked ~ #screen-resident,
+  #nav-admin-login:checked ~ #screen-admin-login,
+  #nav-admin-register:checked ~ #screen-admin-register,
+  #nav-admin:checked ~ #screen-admin,
+  #nav-technician:checked ~ #screen-technician {
     display: flex;
     animation: screenIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
-    transform-origin: center center;
-  }
-  .screen.closing {
-    display: flex;
-    animation: screenOut 0.28s cubic-bezier(0.4, 0, 1, 1) both;
     transform-origin: center center;
   }
 
@@ -87,20 +89,15 @@
     60%  { opacity: 1; transform: scale(1.03); }
     to   { opacity: 1; transform: scale(1); }
   }
-  @keyframes screenOut {
-    from { opacity: 1; transform: scale(1); }
-    to   { opacity: 0; transform: scale(0.9); }
-  }
 
   @media (prefers-reduced-motion: reduce) {
-    .screen.active, .screen.closing { animation: none; }
-    .btn, .panel, .modal-card { animation: none !important; transition: none !important; }
+    .screen, .panel, .modal-card { animation: none !important; transition: none !important; }
   }
 
-  /* ── BACK BUTTON ── */
-  .back-btn {
+  /* ── BACK / CLOSE (labels pointing at #nav-role) ── */
+  .back-btn, .close-btn {
     position: absolute;
-    top: 18px; left: 18px;
+    top: 18px;
     background: none;
     border: none;
     font-size: 1.6rem;
@@ -112,25 +109,12 @@
     border-radius: 50%;
     transition: transform 0.15s, background 0.15s;
     -webkit-tap-highlight-color: transparent;
+    display: inline-block;
   }
-  .back-btn:hover { background: rgba(255,255,255,0.3); }
-  .back-btn:active { transform: scale(0.85); }
-  .close-btn {
-    position: absolute;
-    top: 18px; right: 18px;
-    background: none;
-    border: none;
-    font-size: 1.6rem;
-    color: var(--text-dark);
-    cursor: pointer;
-    z-index: 10;
-    padding: 8px;
-    border-radius: 50%;
-    transition: transform 0.15s, background 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .close-btn:hover { background: rgba(255,255,255,0.3); }
-  .close-btn:active { transform: scale(0.85); }
+  .back-btn { left: 18px; }
+  .close-btn { right: 18px; }
+  .back-btn:hover, .close-btn:hover { background: rgba(255,255,255,0.3); }
+  .back-btn:active, .close-btn:active { transform: scale(0.85); }
 
   /* ── LOGO / HEADER ── */
   .logo-wrap {
@@ -161,7 +145,7 @@
 
   /* ── FORM ELEMENTS ── */
   .form-section { width: 90%; max-width: 480px; margin-bottom: 20px; }
-  .form-section label {
+  .form-section label.field-label {
     display: block;
     font-size: 0.85rem;
     font-weight: 700;
@@ -189,7 +173,7 @@
   .form-section input::placeholder,
   .form-section textarea::placeholder { color: #90b8cc; }
 
-  /* ── BUTTONS ── */
+  /* ── BUTTONS (now <label> elements) ── */
   .btn {
     display: flex; align-items: center; justify-content: center; gap: 12px;
     width: 92%; max-width: 480px;
@@ -200,31 +184,23 @@
     font-size: 1.08rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s, opacity 0.18s, filter 0.15s;
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s, filter 0.15s;
     letter-spacing: 0.5px;
     text-align: center;
     color: #fff;
     margin-bottom: 14px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-    position: relative;
-    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
     min-height: 64px;
   }
   .btn:hover { filter: brightness(1.06); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.16); }
   .btn:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.14); filter: brightness(0.96); }
-  .btn.btn-pop { animation: btnPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  @keyframes btnPop {
-    0%   { transform: scale(1); }
-    40%  { transform: scale(0.92); }
-    100% { transform: scale(1); }
-  }
   .btn-blue { background: var(--blue-btn); }
   .btn-green { background: var(--green-btn); }
   .btn-amber { background: var(--amber-btn); }
   .btn-orange { background: var(--orange-btn); }
   .btn-teal { background: var(--teal-btn); }
-  .btn-gray { background: #90b8cc; }
+  .btn-gray { background: #0a9ce6; }
   .btn .btn-sub {
     display: block;
     font-size: 0.72rem;
@@ -234,14 +210,13 @@
     letter-spacing: 0;
   }
   .btn-inner { display: flex; flex-direction: column; align-items: flex-start; }
+  .btn-disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* ── ROLE SELECT SCREEN ── */
-  #screen-role .logo-wrap { padding-bottom: 32px; }
   #screen-role .btn { flex-direction: row; justify-content: flex-start; padding: 24px 26px; min-height: 78px; }
   .role-icon { font-size: 2.1rem; margin-right: 14px; }
   .btn-inner span:first-child { font-size: 1.15rem; }
 
-  /* ── RESIDENT SCREEN ── */
+  /* ── RESIDENT ── */
   .resident-card {
     width: 90%; max-width: 480px;
     background: #f0d8d8;
@@ -270,13 +245,16 @@
     border-left: 5px solid var(--orange-btn);
     margin-bottom: 16px;
   }
-  .updates-box .updates-title {
-    font-weight: 700; font-size: 0.9rem; color: var(--text-dark); margin-bottom: 6px;
-  }
+  .updates-box .updates-title { font-weight: 700; font-size: 0.9rem; color: var(--text-dark); margin-bottom: 6px; }
   .updates-box .update-item { font-size: 0.82rem; color: #444; }
 
-  /* ── SCHEDULE PANEL ── */
-  .panel {
+  /* ── PANEL TOGGLE ENGINE (checkbox-hack) ── */
+  input.toggle-check { display: none; }
+  .panel, .report-panel { display: none; }
+  #toggle-schedule:checked ~ #schedule-panel { display: block; }
+  #toggle-report:checked ~ #report-panel { display: block; }
+
+  .panel, .report-panel {
     width: 90%; max-width: 480px;
     background: rgba(255,255,255,0.6);
     border-radius: 12px;
@@ -293,38 +271,20 @@
     to   { opacity: 1; transform: scale(1); }
   }
   .panel-title { font-weight: 700; font-size: 1rem; color: var(--text-dark); margin-bottom: 12px; }
+  .report-panel .panel-title { color: #5a8fa8; }
   .panel-close {
     position: absolute; top: 12px; right: 14px;
     background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;
   }
-  .schedule-day {
-    background: rgba(255,255,255,0.75);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 10px;
-  }
+  .schedule-day { background: rgba(255,255,255,0.75); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; }
   .schedule-day-label { font-weight: 700; font-size: 0.82rem; color: var(--text-dark); margin-bottom: 6px; }
   .sched-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-dark); margin-bottom: 3px; }
   .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .dot-green { background: #4caf50; }
   .dot-red { background: #e53935; }
 
-  /* ── REPORT PANEL ── */
-  .report-panel {
-    width: 90%; max-width: 480px;
-    background: rgba(255,255,255,0.6);
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 16px;
-    border: 1.5px solid var(--card-border);
-    position: relative;
-    animation: panelOpen 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
-    transform-origin: center center;
-  }
-  .report-panel .panel-title { color: #5a8fa8; }
-
-  /* ── ADMIN LOGIN ── */
-  #screen-admin-login {
+  /* ── ADMIN LOGIN / REGISTER ── */
+  #screen-admin-login, #screen-admin-register {
     background: linear-gradient(160deg, #90c8e0 0%, #6ab0d0 50%, #4a9cc0 100%);
   }
   .modal-card {
@@ -345,7 +305,7 @@
   }
   .modal-card .modal-icon { font-size: 3.5rem; margin-bottom: 10px; }
   .modal-card .modal-title { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); }
-  .modal-card .modal-sub { font-size: 0.8rem; color: var(--text-mid); margin-bottom: 20px; }
+  .modal-card .modal-sub { font-size: 0.8rem; color: var(--text-mid); margin-bottom: 20px; text-align: center; }
   .modal-card .form-section { width: 100%; }
   .modal-card .btn { width: 100%; margin-top: 8px; }
   .link-text {
@@ -354,147 +314,64 @@
   }
 
   /* ── ADMIN DASHBOARD ── */
-  .stat-row {
-    width: 90%; max-width: 480px;
-    display: flex; gap: 10px; margin-bottom: 16px;
-  }
-  .stat-box {
-    flex: 1;
-    border-radius: 10px;
-    padding: 16px 8px;
-    text-align: center;
-    color: #fff;
-    font-family: var(--font);
-  }
+  .stat-row { width: 90%; max-width: 480px; display: flex; gap: 10px; margin-bottom: 16px; }
+  .stat-box { flex: 1; border-radius: 10px; padding: 16px 8px; text-align: center; color: #fff; font-family: var(--font); }
   .stat-box .stat-num { font-size: 1.8rem; font-weight: 700; }
   .stat-box .stat-label { font-size: 0.72rem; margin-top: 2px; }
   .stat-pending { background: var(--pending-bg); }
   .stat-active { background: var(--active-bg); }
   .stat-done { background: var(--fixed-bg); }
 
-  .broadcast-row {
-    width: 90%; max-width: 480px;
-    display: flex; gap: 10px; margin-bottom: 16px; align-items: stretch;
-  }
+  .broadcast-row { width: 90%; max-width: 480px; display: flex; gap: 10px; margin-bottom: 8px; align-items: stretch; }
   .broadcast-row input {
-    flex: 1;
-    padding: 12px 16px;
-    background: var(--input-bg);
-    border: 1.5px solid var(--input-border);
-    border-radius: 10px;
-    font-family: var(--font);
-    font-size: 0.85rem;
-    color: var(--text-dark);
-    outline: none;
+    flex: 1; padding: 12px 16px; background: var(--input-bg);
+    border: 1.5px solid var(--input-border); border-radius: 10px;
+    font-family: var(--font); font-size: 0.85rem; color: var(--text-dark); outline: none;
   }
   .send-btn {
-    background: var(--blue-btn);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-family: var(--font);
-    font-size: 0.82rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: var(--blue-btn); color: #fff; border: none; border-radius: 12px;
+    padding: 12px 20px; font-family: var(--font); font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
     transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent; opacity: 0.6;
   }
-  .send-btn:hover { filter: brightness(1.08); }
-  .send-btn:active { transform: scale(0.92); }
-  .broadcast-label {
+  .broadcast-label { width: 90%; max-width: 480px; font-size: 0.8rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+
+  .static-note {
     width: 90%; max-width: 480px;
-    font-size: 0.8rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;
+    font-size: 0.72rem; color: #7a5b00; background: rgba(255,236,179,0.6);
+    border: 1px solid rgba(198,138,0,0.35); border-radius: 8px;
+    padding: 8px 12px; margin-bottom: 16px;
   }
 
   .job-list-box {
-    width: 90%; max-width: 480px;
-    background: rgba(255,255,255,0.55);
-    border-radius: 12px;
-    padding: 18px 20px;
-    border: 1.5px solid var(--card-border);
+    width: 90%; max-width: 480px; background: rgba(255,255,255,0.55);
+    border-radius: 12px; padding: 18px 20px; border: 1.5px solid var(--card-border);
   }
   .job-list-title { font-weight: 700; font-size: 1rem; color: var(--text-dark); margin-bottom: 12px; }
   .empty-jobs { font-size: 0.85rem; color: #888; text-align: center; padding: 16px 0; }
 
-  .job-item {
-    background: rgba(255,255,255,0.75);
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    border-left: 4px solid var(--orange-btn);
-  }
+  .job-item { background: rgba(255,255,255,0.75); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; border-left: 4px solid var(--orange-btn); }
   .job-item .job-type { font-weight: 700; font-size: 0.88rem; color: var(--text-dark); }
   .job-item .job-meta { font-size: 0.78rem; color: var(--text-mid); margin-top: 3px; }
   .job-item .job-actions { display: flex; gap: 8px; margin-top: 8px; }
-  .job-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--pending-bg);
-  }
+  .job-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: #fff; background: var(--pending-bg); }
   .job-badge.active { background: var(--active-bg); }
   .job-badge.fixed { background: var(--fixed-bg); }
   .small-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    color: #fff;
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    padding: 8px 16px; border: none; border-radius: 8px; font-family: var(--font);
+    font-size: 0.8rem; font-weight: 700; cursor: not-allowed; color: #fff; opacity: 0.55;
   }
-  .small-btn:hover { filter: brightness(1.08); }
-  .small-btn:active { transform: scale(0.93); }
   .small-btn-blue { background: var(--blue-btn); }
   .small-btn-green { background: var(--fixed-bg); }
 
   /* ── TECHNICIAN ── */
-  .tech-header {
-    width: 90%; max-width: 480px;
-    display: flex; align-items: center; gap: 10px;
-    padding: 22px 0 14px;
-    font-size: 1.2rem; font-weight: 700; color: var(--text-dark);
-  }
-  .no-jobs-box {
-    width: 90%; max-width: 480px;
-    background: #d8d8d8;
-    border-radius: 12px;
-    padding: 40px 24px;
-    text-align: center;
-    margin-top: 8px;
-  }
+  .tech-header { width: 90%; max-width: 480px; display: flex; align-items: center; gap: 10px; padding: 22px 0 14px; font-size: 1.2rem; font-weight: 700; color: var(--text-dark); }
+  .no-jobs-box { width: 90%; max-width: 480px; background: #d8d8d8; border-radius: 12px; padding: 40px 24px; text-align: center; margin-top: 8px; }
   .no-jobs-box .nj-icon { font-size: 2.5rem; color: #5a8fa8; margin-bottom: 10px; }
   .no-jobs-box p { font-size: 0.85rem; color: #555; }
 
-  /* ── TOASTS ── */
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: #1565c0; color: #fff;
-    padding: 12px 24px; border-radius: 30px;
-    font-family: var(--font); font-size: 0.85rem;
-    z-index: 999; opacity: 0; pointer-events: none;
-    transition: opacity 0.3s;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
-
-  /* Scrollable screen content */
-  .scroll-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-y: auto;
-    padding-bottom: 30px;
-  }
+  .scroll-content { width: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 30px; }
 
   @media (max-width: 400px) {
     .app-title { font-size: 1.1rem; }
@@ -506,18 +383,25 @@
 <body>
 <div class="app-shell">
 
-  <!-- SVG waves -->
+  <!-- ══════ NAVIGATION RADIOS (no JS: this is what drives every screen switch) ══════ -->
+  <input class="nav-radio" type="radio" name="nav" id="nav-role" checked>
+  <input class="nav-radio" type="radio" name="nav" id="nav-resident-login">
+  <input class="nav-radio" type="radio" name="nav" id="nav-resident">
+  <input class="nav-radio" type="radio" name="nav" id="nav-admin-login">
+  <input class="nav-radio" type="radio" name="nav" id="nav-admin-register">
+  <input class="nav-radio" type="radio" name="nav" id="nav-admin">
+  <input class="nav-radio" type="radio" name="nav" id="nav-technician">
+
   <svg class="wave-bottom" viewBox="0 0 900 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M0,80 C150,140 300,30 450,90 C600,150 750,40 900,80 L900,180 L0,180 Z" fill="rgba(100,180,220,0.35)"/>
     <path d="M0,110 C120,60 280,150 450,110 C620,70 780,160 900,100 L900,180 L0,180 Z" fill="rgba(80,160,210,0.25)"/>
   </svg>
 
   <!--  SCREEN: ROLE SELECT  -->
-  <div class="screen active" id="screen-role">
+  <div class="screen" id="screen-role">
     <div class="logo-wrap">
       <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
         <circle cx="40" cy="40" r="38" fill="#1565c0" opacity="0.15"/>
-        <ellipse cx="40" cy="52" rx="24" ry="10" fill="#1976d2" opacity="0.3"/>
         <path d="M40 12 C40 12 18 34 18 50 C18 62 28 72 40 72 C52 72 62 62 62 50 C62 34 40 12 40 12 Z" fill="#1976d2"/>
         <path d="M40 20 C40 20 24 38 24 50 C24 58 31 64 40 64 C49 64 56 58 56 50 C56 38 40 20 40 20 Z" fill="#42a5f5"/>
         <ellipse cx="34" cy="44" rx="5" ry="8" fill="rgba(255,255,255,0.35)" transform="rotate(-20,34,44)"/>
@@ -526,32 +410,32 @@
       <div class="app-subtitle">Barangay Banban Water Management</div>
       <div class="app-sdg">DEVELOPED BY JUNREL ALIPOGPOG</div>
     </div>
-    <button class="btn btn-blue" onclick="showScreen('screen-resident-login')">
+    <label class="btn btn-blue" for="nav-resident-login">
       <span class="role-icon">👥</span>
       <span class="btn-inner">
         <span>RESIDENT</span>
         <span class="btn-sub">Check water schedule, report leaks, view updates</span>
       </span>
-    </button>
-    <button class="btn btn-green" onclick="showScreen('screen-admin-login')">
+    </label>
+    <label class="btn btn-green" for="nav-admin-login">
       <span class="role-icon">🛡️</span>
       <span class="btn-inner">
         <span>ADMIN</span>
         <span class="btn-sub">Monitor network, Manage Distribution, Track Repairs</span>
       </span>
-    </button>
-    <button class="btn btn-amber" onclick="showScreen('screen-technician')">
+    </label>
+    <label class="btn btn-amber" for="nav-technician">
       <span class="role-icon">⚙️</span>
       <span class="btn-inner">
         <span>TECHNICIAN</span>
         <span class="btn-sub">View Work Queue, update repairs, manage inventory</span>
       </span>
-    </button>
+    </label>
   </div>
 
   <!--  SCREEN: RESIDENT LOGIN  -->
   <div class="screen" id="screen-resident-login">
-    <button class="back-btn" onclick="showScreen('screen-role')">←</button>
+    <label class="back-btn" for="nav-role">←</label>
     <div class="logo-wrap">
       <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
         <circle cx="40" cy="40" r="38" fill="#1565c0" opacity="0.15"/>
@@ -564,16 +448,16 @@
       <div class="app-sdg">DEVELOPED BY JUNREL ALIPOGPOG</div>
     </div>
     <div class="form-section">
-      <label>Full Name</label>
-      <input type="text" id="resident-name" placeholder="Enter your full name">
+      <label class="field-label">Full Name</label>
+      <input type="text" placeholder="Enter your full name">
     </div>
     <div class="form-section">
-      <label>Phone Number</label>
-      <input type="tel" id="resident-phone" placeholder="09xx xxx xxxx">
+      <label class="field-label">Phone Number</label>
+      <input type="tel" placeholder="09xx xxx xxxx">
     </div>
     <div class="form-section">
-      <label>Select Purok</label>
-      <select id="resident-purok">
+      <label class="field-label">Select Purok</label>
+      <select>
         <option value="">Choose your Purok</option>
         <option>Purok San Jose</option>
         <option>Purok San Juan</option>
@@ -583,389 +467,200 @@
         <option>Purok San Frances</option>
       </select>
     </div>
-    <button class="btn btn-teal" onclick="residentAccess()">Access Water Status</button>
+    <label class="btn btn-teal" for="nav-resident">Access Water Status</label>
   </div>
 
   <!--  SCREEN: RESIDENT DASHBOARD  -->
   <div class="screen" id="screen-resident">
     <div class="scroll-content">
+
+      <!-- panel toggle checkboxes live here so ~ can reach the panels below -->
+      <input class="toggle-check" type="checkbox" id="toggle-schedule">
+      <input class="toggle-check" type="checkbox" id="toggle-report">
+
       <div style="width:90%;max-width:480px;padding-top:16px;display:flex;align-items:center;gap:12px;">
-        <button class="back-btn" style="position:relative;top:auto;left:auto;" onclick="showScreen('screen-role')">←</button>
-        <div class="screen-header" style="padding:0;">
-          <span>👥</span> Resident App
-        </div>
+        <label class="back-btn" style="position:relative;top:auto;left:auto;" for="nav-role">←</label>
+        <div class="screen-header" style="padding:0;"><span>👥</span> Resident App</div>
       </div>
 
-      <div class="resident-card" id="resident-info-card">
-        <div class="r-name" id="r-display-name">Name</div>
-        <div class="r-detail" id="r-display-loc">Location</div>
-        <div class="r-detail" id="r-display-num">Number</div>
+      <div class="resident-card">
+        <div class="r-name">Resident</div>
+        <div class="r-detail">Purok San Jose</div>
+        <div class="r-detail">09xx xxx xxxx</div>
       </div>
+     
 
-      <button class="btn btn-teal" onclick="toggleSchedule()">📅 View Schedule</button>
-      <button class="btn btn-orange" onclick="toggleReport()">⚠️ Report Leak / Request Repair</button>
+      <label class="btn btn-teal" for="toggle-schedule">📅 View Schedule</label>
+      <label class="btn btn-orange" for="toggle-report">⚠️ Report Leak / Request Repair</label>
 
       <div class="updates-box">
         <div class="updates-title">Latest Updates</div>
-        <div class="update-item" id="latest-update-text">• Water supply maintenance scheduled for tomorrow 8AM–12PM</div>
+        <div class="update-item">• Water supply maintenance scheduled for tomorrow 8AM–12PM</div>
       </div>
 
       <!-- Schedule Panel -->
-      <div class="panel" id="schedule-panel" style="display:none;">
-        <button class="panel-close" onclick="toggleSchedule()">✕</button>
+      <div class="panel" id="schedule-panel">
+        <label class="panel-close" for="toggle-schedule">✕</label>
         <div class="panel-title">Water Schedule</div>
-        <div id="schedule-list">
-          <div class="schedule-day">
-            <div class="schedule-day-label">2026-06-01</div>
-            <div class="sched-row"><span class="dot dot-green"></span> Water ON: 06:00 AM</div>
-            <div class="sched-row"><span class="dot dot-red"></span> Water OFF: 10:00 AM</div>
-            <div class="sched-row"><span class="dot dot-green"></span> Return: 04:00 PM</div>
-          </div>
-          <div class="schedule-day">
-            <div class="schedule-day-label">2026-06-02</div>
-            <div class="sched-row"><span class="dot dot-green"></span> Water ON: 06:00 AM</div>
-            <div class="sched-row"><span class="dot dot-red"></span> Water OFF: 12:00 PM</div>
-            <div class="sched-row"><span class="dot dot-green"></span> Return: 05:00 PM</div>
-          </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">2026-06-01</div>
+          <div class="sched-row"><span class="dot dot-green"></span> Water ON: 06:00 AM</div>
+          <div class="sched-row"><span class="dot dot-red"></span> Water OFF: 10:00 AM</div>
+          <div class="sched-row"><span class="dot dot-green"></span> Return: 04:00 PM</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">2026-06-02</div>
+          <div class="sched-row"><span class="dot dot-green"></span> Water ON: 06:00 AM</div>
+          <div class="sched-row"><span class="dot dot-red"></span> Water OFF: 12:00 PM</div>
+          <div class="sched-row"><span class="dot dot-green"></span> Return: 05:00 PM</div>
         </div>
       </div>
 
       <!-- Report Panel -->
-      <div class="report-panel" id="report-panel" style="display:none;">
-        <button class="panel-close" onclick="toggleReport()">✕</button>
+      <div class="report-panel" id="report-panel">
+        <label class="panel-close" for="toggle-report">✕</label>
         <div class="panel-title">Submit Report</div>
         <div class="form-section" style="width:100%;margin-bottom:12px;">
-          <label>Report Type</label>
-          <input type="text" id="report-type" placeholder="Report here...">
+          <label class="field-label">Report Type</label>
+          <input type="text" placeholder="Report here...">
         </div>
         <div class="form-section" style="width:100%;margin-bottom:12px;">
-          <label>Description</label>
-          <textarea id="report-desc" placeholder="Describe the issue..."></textarea>
+          <label class="field-label">Description</label>
+          <textarea placeholder="Describe the issue..."></textarea>
         </div>
         <div style="margin-bottom:12px;">
-          <label style="font-size:0.78rem;color:var(--text-mid);">Upload Photo (Optional)</label>
+          <label class="field-label" style="font-size:0.78rem;color:var(--text-mid);">Upload Photo (Optional)</label>
           <input type="file" accept="image/*" style="font-size:0.8rem;margin-top:4px;">
         </div>
-        <button class="btn btn-gray" style="width:100%;margin:0;" onclick="submitReport()">Submit Report</button>
+        
+        <label class="btn btn-blue btn-disabled" style="width:100%;margin:0;">Submit Report</label>
       </div>
     </div>
   </div>
 
   <!-- SCREEN: ADMIN LOGIN  -->
-  <div class="screen" id="screen-admin-login" style="background:linear-gradient(160deg,#90c8e0 0%,#6ab0d0 50%,#4a9cc0 100%);">
-    <button class="close-btn" onclick="showScreen('screen-role')">✕</button>
+  <div class="screen" id="screen-admin-login">
+    <label class="close-btn" for="nav-role">✕</label>
     <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;">
       <div class="modal-card">
         <div class="modal-icon">🛡️</div>
         <div class="modal-title">Admin Login</div>
-        <div class="modal-sub">Enter your credentials to continue</div>
         <div class="form-section">
-          <label>Username</label>
-          <input type="text" id="admin-user" placeholder="Enter username...">
+          <label class="field-label">Username</label>
+          <input type="text" placeholder="Enter username...">
         </div>
         <div class="form-section">
-          <label>Password</label>
-          <input type="password" id="admin-pass" placeholder="Enter password...">
+          <label class="field-label">Password</label>
+          <input type="password" placeholder="Enter password...">
         </div>
-        <button class="btn btn-blue" onclick="adminLogin()">Login</button>
-        <div class="link-text" onclick="showScreen('screen-admin-register')">Don't have an account? Create one</div>
+        <label class="btn btn-blue" for="nav-admin">Login</label>
+        <label class="link-text" for="nav-admin-register">Don't have an account? Create one</label>
       </div>
     </div>
   </div>
 
   <!--  SCREEN: ADMIN REGISTER  -->
-  <div class="screen" id="screen-admin-register" style="background:linear-gradient(160deg,#90c8e0 0%,#6ab0d0 50%,#4a9cc0 100%);">
-    <button class="back-btn" onclick="showScreen('screen-admin-login')">←</button>
+  <div class="screen" id="screen-admin-register">
+    <label class="back-btn" for="nav-admin-login">←</label>
     <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;">
       <div class="modal-card">
         <div class="modal-icon">🧑‍💼</div>
         <div class="modal-title">Create Admin Account</div>
         <div class="modal-sub">Register as an administrator</div>
         <div class="form-section">
-          <label>Full Name</label>
-          <input type="text" id="reg-name" placeholder="Enter your full name...">
+          <label class="field-label">Full Name</label>
+          <input type="text" placeholder="Enter your full name...">
         </div>
         <div class="form-section">
-          <label>Role/Position</label>
-          <input type="text" id="reg-role" placeholder="e.g., Barangay Officials, Committee Member...">
+          <label class="field-label">Role/Position</label>
+          <input type="text" placeholder="e.g., Barangay Officials, Committee Member...">
         </div>
         <div class="form-section">
-          <label>Username</label>
-          <input type="text" id="reg-user" placeholder="Enter Username...">
+          <label class="field-label">Username</label>
+          <input type="text" placeholder="Enter Username...">
         </div>
         <div class="form-section">
-          <label>Password</label>
-          <input type="password" id="reg-pass" placeholder="Enter password...">
+          <label class="field-label">Password</label>
+          <input type="password" placeholder="Enter password...">
         </div>
-        <button class="btn btn-blue" onclick="createAdmin()">Create Account</button>
-        <div class="link-text" onclick="showScreen('screen-admin-login')">Already have an account? Login</div>
+        <label class="btn btn-blue" for="nav-admin-login">Create Account</label>
+        <label class="link-text" for="nav-admin-login">Already have an account? Login</label>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════ SCREEN: ADMIN DASHBOARD ═══════════════════════════ -->
+  <!-- SCREEN: ADMIN DASHBOARD -->
   <div class="screen" id="screen-admin">
     <div class="scroll-content">
       <div style="width:90%;max-width:480px;padding-top:16px;display:flex;align-items:center;gap:12px;">
-        <button class="back-btn" style="position:relative;top:auto;left:auto;" onclick="showScreen('screen-role')">←</button>
-        <div class="screen-header" style="padding:0;">
-          🛡️ Admin Dashboard
-        </div>
+        <label class="back-btn" style="position:relative;top:auto;left:auto;" for="nav-role">←</label>
+        <div class="screen-header" style="padding:0;">🛡️ Admin Dashboard</div>
       </div>
 
       <div class="broadcast-label">Broadcast Update</div>
       <div class="broadcast-row">
-        <input type="text" id="broadcast-msg" placeholder="Enter update message for residents...">
-        <button class="send-btn" onclick="sendBroadcast()">📤<span style="font-size:0.7rem;">Send<br>Update</span></button>
+        <input type="text" placeholder="Enter update message for residents...">
+        <button class="send-btn" disabled>📤<span style="font-size:0.7rem;">Send<br>Update</span></button>
       </div>
+      
 
       <div class="stat-row">
-        <div class="stat-box stat-pending">
-          <div class="stat-num" id="stat-pending">0</div>
-          <div class="stat-label">Pending</div>
-        </div>
-        <div class="stat-box stat-active">
-          <div class="stat-num" id="stat-active">0</div>
-          <div class="stat-label">Active</div>
-        </div>
-        <div class="stat-box stat-done">
-          <div class="stat-num" id="stat-fixed">0</div>
-          <div class="stat-label">Fixed</div>
-        </div>
+        <div class="stat-box stat-pending"><div class="stat-num">2</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box stat-active"><div class="stat-num">1</div><div class="stat-label">Active</div></div>
+        <div class="stat-box stat-done"><div class="stat-num">4</div><div class="stat-label">Fixed</div></div>
       </div>
+      
 
       <div class="job-list-box">
-        <div class="job-list-title">Job Dispatch List</div>
-        <div id="admin-job-list">
-          <div class="empty-jobs">No repair request yet</div>
+        <div class="job-list-title">Job Dispatch List (sample)</div>
+        <div class="job-item">
+          <div class="job-type">Leaking Pipe <span class="job-badge">pending</span></div>
+          <div class="job-meta">From: Resident · Purok San Jose</div>
+          <div class="job-meta">Water leaking near the main junction box.</div>
+          <div class="job-actions"><button class="small-btn small-btn-blue" disabled>Mark Active</button></div>
+        </div>
+        <div class="job-item">
+          <div class="job-type">Low Pressure <span class="job-badge active">active</span></div>
+          <div class="job-meta">From: User · Purok San Juan</div>
+          <div class="job-meta">Very low pressure since morning.</div>
+          <div class="job-actions"><button class="small-btn small-btn-green" disabled>Mark Fixed</button></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════ SCREEN: TECHNICIAN ═══════════════════════════ -->
+  <!-- SCREEN: TECHNICIAN -->
   <div class="screen" id="screen-technician">
     <div class="scroll-content">
       <div style="width:90%;max-width:480px;padding-top:16px;display:flex;align-items:center;gap:12px;">
-        <button class="back-btn" style="position:relative;top:auto;left:auto;" onclick="showScreen('screen-role')">←</button>
-        <div class="tech-header" style="padding:0;">
-          🔧 Technician Dashboard
-        </div>
+        <label class="back-btn" style="position:relative;top:auto;left:auto;" for="nav-role">←</label>
+        <div class="tech-header" style="padding:0;">🔧 Technician Dashboard</div>
       </div>
 
       <div class="stat-row">
-        <div class="stat-box stat-pending">
-          <div class="stat-num" id="tech-pending">0</div>
-          <div class="stat-label">Pending</div>
-        </div>
-        <div class="stat-box stat-active">
-          <div class="stat-num" id="tech-active">0</div>
-          <div class="stat-label">Active</div>
-        </div>
-        <div class="stat-box stat-done">
-          <div class="stat-num" id="tech-completed">0</div>
-          <div class="stat-label">Completed</div>
-        </div>
+        <div class="stat-box stat-pending"><div class="stat-num">2</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box stat-active"><div class="stat-num">1</div><div class="stat-label">Active</div></div>
+        <div class="stat-box stat-done"><div class="stat-num">4</div><div class="stat-label">Completed</div></div>
       </div>
 
-      <div class="no-jobs-box" id="tech-empty">
-        <div class="nj-icon">🔧</div>
-        <p>No jobs assigned yet<br>Check back later for new assignment</p>
-      </div>
-
-      <div class="job-list-box" id="tech-job-list" style="display:none;">
-        <div class="job-list-title">My Jobs</div>
-        <div id="tech-jobs-content"></div>
+      <div class="job-list-box">
+        <div class="job-list-title">My Jobs (sample)</div>
+        <div class="job-item">
+          <div class="job-type">Leaking Pipe <span class ="job-badge">pending</span></div>
+          <div class="job-meta">Purok San Jose · Resident</div>
+          <div class="job-meta">Water leaking near the main junction box.</div>
+          <div class="job-actions"><button class="small-btn small-btn-blue" disabled>Start Job</button></div>
+        </div>
+        <div class="job-item">
+          <div class="job-type">Low Pressure <span class="job-badge active">active</span></div>
+          <div class="job-meta">Purok San Juan · Sample User</div>
+          <div class="job-meta">Very low pressure since morning.</div>
+          <div class="job-actions"><button class="small-btn small-btn-green" disabled>Complete</button></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
 </div>
-
-<script>
-  // ── STATE ──
-  const state = {
-    resident: { name: '', phone: '', purok: '' },
-    jobs: [], // { id, type, desc, status: 'pending'|'active'|'fixed', reporter, purok }
-    broadcastMsg: '',
-    adminAccounts: [{ user: 'admin', pass: 'admin123' }],
-    nextId: 1
-  };
-
-  // ── NAVIGATION ──
-  function showScreen(id) {
-    const current = document.querySelector('.screen.active');
-    const next = document.getElementById(id);
-    if (current === next) return;
-
-    if (current) {
-      current.classList.remove('active');
-      current.classList.add('closing');
-      setTimeout(() => current.classList.remove('closing'), 300);
-    }
-    next.classList.add('active');
-    window.scrollTo(0,0);
-  }
-
-  // Add a satisfying pop animation whenever any .btn is clicked
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn');
-    if (btn) {
-      btn.classList.remove('btn-pop');
-      void btn.offsetWidth; // restart animation
-      btn.classList.add('btn-pop');
-    }
-  });
-
-  // ── TOAST ──
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2800);
-  }
-
-  // ── RESIDENT ──
-  function residentAccess() {
-    const name = document.getElementById('resident-name').value.trim();
-    const phone = document.getElementById('resident-phone').value.trim();
-    const purok = document.getElementById('resident-purok').value;
-    if (!name || !purok) { showToast('Please fill in your name and Purok.'); return; }
-    state.resident = { name, phone, purok };
-    document.getElementById('r-display-name').textContent = name;
-    document.getElementById('r-display-loc').textContent = purok;
-    document.getElementById('r-display-num').textContent = phone || 'N/A';
-    document.getElementById('schedule-panel').style.display = 'none';
-    document.getElementById('report-panel').style.display = 'none';
-    showScreen('screen-resident');
-  }
-
-  function toggleSchedule() {
-    const p = document.getElementById('schedule-panel');
-    p.style.display = p.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function toggleReport() {
-    const p = document.getElementById('report-panel');
-    p.style.display = p.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function submitReport() {
-    const type = document.getElementById('report-type').value.trim();
-    const desc = document.getElementById('report-desc').value.trim();
-    if (!type || !desc) { showToast('Please fill in report type and description.'); return; }
-    const job = {
-      id: state.nextId++,
-      type, desc,
-      status: 'pending',
-      reporter: state.resident.name,
-      purok: state.resident.purok
-    };
-    state.jobs.push(job);
-    document.getElementById('report-type').value = '';
-    document.getElementById('report-desc').value = '';
-    document.getElementById('report-panel').style.display = 'none';
-    refreshAdmin();
-    refreshTech();
-    showToast('Report submitted successfully!');
-  }
-
-  // ── ADMIN ──
-  function adminLogin() {
-    const u = document.getElementById('admin-user').value.trim();
-    const p = document.getElementById('admin-pass').value;
-    const found = state.adminAccounts.find(a => a.user === u && a.pass === p);
-    if (!found) { showToast('Invalid credentials.'); return; }
-    refreshAdmin();
-    showScreen('screen-admin');
-  }
-
-  function createAdmin() {
-    const name = document.getElementById('reg-name').value.trim();
-    const user = document.getElementById('reg-user').value.trim();
-    const pass = document.getElementById('reg-pass').value;
-    if (!name || !user || !pass) { showToast('Please fill in all fields.'); return; }
-    state.adminAccounts.push({ user, pass });
-    showToast('Account created! You can now log in.');
-    showScreen('screen-admin-login');
-  }
-
-  function sendBroadcast() {
-    const msg = document.getElementById('broadcast-msg').value.trim();
-    if (!msg) { showToast('Enter a message to broadcast.'); return; }
-    state.broadcastMsg = msg;
-    document.getElementById('latest-update-text').textContent = '• ' + msg;
-    document.getElementById('broadcast-msg').value = '';
-    showToast('Update broadcast to all residents!');
-  }
-
-  function refreshAdmin() {
-    const pending = state.jobs.filter(j => j.status === 'pending').length;
-    const active = state.jobs.filter(j => j.status === 'active').length;
-    const fixed = state.jobs.filter(j => j.status === 'fixed').length;
-    document.getElementById('stat-pending').textContent = pending;
-    document.getElementById('stat-active').textContent = active;
-    document.getElementById('stat-fixed').textContent = fixed;
-
-    const list = document.getElementById('admin-job-list');
-    if (state.jobs.length === 0) {
-      list.innerHTML = '<div class="empty-jobs">No repair request yet</div>';
-      return;
-    }
-    list.innerHTML = state.jobs.map(j => `
-      <div class="job-item">
-        <div class="job-type">${j.type} <span class="job-badge ${j.status === 'active' ? 'active' : j.status === 'fixed' ? 'fixed' : ''}">${j.status}</span></div>
-        <div class="job-meta">From: ${j.reporter} · ${j.purok}</div>
-        <div class="job-meta">${j.desc}</div>
-        <div class="job-actions">
-          ${j.status === 'pending' ? `<button class="small-btn small-btn-blue" onclick="updateJob(${j.id},'active')">Mark Active</button>` : ''}
-          ${j.status === 'active' ? `<button class="small-btn small-btn-green" onclick="updateJob(${j.id},'fixed')">Mark Fixed</button>` : ''}
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function updateJob(id, status) {
-    const job = state.jobs.find(j => j.id === id);
-    if (job) job.status = status;
-    refreshAdmin();
-    refreshTech();
-    showToast(`Job #${id} marked as ${status}.`);
-  }
-
-  // ── TECHNICIAN ──
-  function refreshTech() {
-    const pending = state.jobs.filter(j => j.status === 'pending').length;
-    const active = state.jobs.filter(j => j.status === 'active').length;
-    const completed = state.jobs.filter(j => j.status === 'fixed').length;
-    document.getElementById('tech-pending').textContent = pending;
-    document.getElementById('tech-active').textContent = active;
-    document.getElementById('tech-completed').textContent = completed;
-
-    const emptyBox = document.getElementById('tech-empty');
-    const listBox = document.getElementById('tech-job-list');
-    const content = document.getElementById('tech-jobs-content');
-
-    if (state.jobs.length === 0) {
-      emptyBox.style.display = 'block';
-      listBox.style.display = 'none';
-    } else {
-      emptyBox.style.display = 'none';
-      listBox.style.display = 'block';
-      content.innerHTML = state.jobs.map(j => `
-        <div class="job-item">
-          <div class="job-type">${j.type} <span class="job-badge ${j.status === 'active' ? 'active' : j.status === 'fixed' ? 'fixed' : ''}">${j.status}</span></div>
-          <div class="job-meta">${j.purok} · ${j.reporter}</div>
-          <div class="job-meta">${j.desc}</div>
-          <div class="job-actions">
-            ${j.status === 'pending' ? `<button class="small-btn small-btn-blue" onclick="updateJob(${j.id},'active')">Start Job</button>` : ''}
-            ${j.status === 'active' ? `<button class="small-btn small-btn-green" onclick="updateJob(${j.id},'fixed')">Complete</button>` : ''}
-          </div>
-        </div>
-      `).join('');
-    }
-  }
-</script>
 </body>
 </html>
